@@ -7,6 +7,7 @@ import { SecureLink } from "react-secure-link";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList as List } from "react-window";
 import Linkify from "react-linkify/dist/components/Linkify";
+import eventBus from '../EventBus';
 
 export default function ChatView(props) {
   let audioRef = useRef();
@@ -34,10 +35,13 @@ export default function ChatView(props) {
   const [isLoaded, setIsLoaded] = useState(false);
   function scrollBottom() {
     setNewMessageCount(0);
+ 
     if (listRef.current) {
       listRef.current.scrollToItem(99999999);
     }
+    
   }
+
 
   const Row = ({ data, index, setSize, windowWidth }) => {
     const rowRef = useRef();
@@ -54,8 +58,10 @@ export default function ChatView(props) {
         className="messageItem"
         ref={rowRef}
         style={{ paddingTop: 8, paddingBottom: 8 }}
-      >
-        <img className="displayPic" src={displayurl}></img>
+      > <div className="displayHelper">
+<img className="displayPic" src={displayurl}></img>
+      </div>
+        
         <div className="msgText">
           <div className="username">{data[index].Username}</div>
           <div className="timestamp">
@@ -105,7 +111,7 @@ export default function ChatView(props) {
   function scrollTest(event) {
     if (listElement.current) {
       if (
-        (event.scrollOffset + listElement.current.offsetHeight) ===
+        ((event.scrollOffset + listElement.current.offsetHeight) + 50) >=
         listElement.current.scrollHeight
       ) {
         setAutoScroll(true);
@@ -134,6 +140,7 @@ export default function ChatView(props) {
               copydata.push(data.data[i]);
             }
             setCurrentData(copydata);
+
             if (autoScroll) {
               scrollBottom();
             }
@@ -163,9 +170,18 @@ export default function ChatView(props) {
       clearTimeout(updaterId);
     };
   }, [updater, props.currentChannel]);
+  useEffect(() => {
+    eventBus.on('newMessage', (data) => {
+      setUpdater((prevUpdate) => prevUpdate + 1);
+    })
+    return () => {
+      eventBus.remove('newMessage')
+    }
 
+  }, []);
   useEffect(() => {
     setIsLoaded(false);
+    
     setCurrentData([]);
     axios
       .get(GET_MESSAGES + "/?type=initialSync&channel=" + props.currentChannel)
@@ -178,12 +194,13 @@ export default function ChatView(props) {
           listRef.current.scrollToItem(999999999);
         }, 100);
       });
+      
   }, [props.currentChannel]);
 
   if (isLoaded && currentData.length !== 0) {
     return (
-      <div style={{ width: "100%", height: "100%" }}>
-        <audio autoPlay={false} ref={audioRef} src="/ping.m4a"></audio>
+      <div style={{ width: "100%", height: "calc(100% - 50px)" }}>
+        <audio autoPlay={false} ref={audioRef} src="/invalid.mp3"></audio>
         <button
           className="btn"
           style={{
@@ -192,7 +209,8 @@ export default function ChatView(props) {
             cursor: "pointer",
             zIndex: 1600,
             position: "fixed",
-            bottom: 16,
+            display: autoScroll?"none":"block",
+            bottom: 56,
             right: 16,
           }}
           onClick={scrollBottom}

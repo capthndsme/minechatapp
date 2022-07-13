@@ -11,6 +11,7 @@ import {
 } from "react-router-dom";
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 import reportWebVitals from './reportWebVitals';
+import Login from './routes/Login';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -19,7 +20,7 @@ root.render(
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/chat/:id" element={<ChatMain />} />
-        <Route path="/chat/auth" element={<Landing />} />
+        <Route path="/login" element={<Login />} />
 
        
       </Routes>
